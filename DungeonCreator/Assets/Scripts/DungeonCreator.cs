@@ -4,7 +4,10 @@ using UnityEngine;
 public class DungeonCreator : MonoBehaviour
 {
 	[Header("Visualization")]
-	[SerializeField] private GameObject groundTilePrefab;
+	[SerializeField] private GameObject tileFloorPrefab;
+	[SerializeField] private GameObject tileWallPrefab;
+	[SerializeField] private GameObject tileCornerPrefab;
+	
 	[Header("Configuration")]
 	[SerializeField] private int seed = 123456;
 	[SerializeField] private Vector2Int dungeonSize = new Vector2Int(100, 100);
@@ -18,8 +21,9 @@ public class DungeonCreator : MonoBehaviour
 	public void GenerateDungeon()
 	{
 		_rng = new System.Random(seed);
+
+		var dungeon = new Dungeon { Rooms = new List<DungeonRoom>() };
 		
-		var roomList = new List<DungeonRoom>();
 		var initialRoom = new DungeonRoom()
 		{
 			XMin = 0,
@@ -32,9 +36,9 @@ public class DungeonCreator : MonoBehaviour
 			initialRoom,
 			SliceMode.Vertical, 
 			0,
-			ref roomList);
+			ref dungeon.Rooms);
 		
-		VisualizeDungeon(roomList);
+		VisualizeDungeon(dungeon);
 	}
 
 	public void DeleteDungeon()
@@ -84,7 +88,7 @@ public class DungeonCreator : MonoBehaviour
 			roomA.ZMin = roomToSlice.ZMin;
 			roomA.ZMax = roomToSlice.ZMax;
 			
-			roomB.XMin = slicePosition;
+			roomB.XMin = slicePosition + 1;
 			roomB.XMax = roomToSlice.XMax;
 			roomB.ZMin = roomToSlice.ZMin;
 			roomB.ZMax = roomToSlice.ZMax;
@@ -98,40 +102,94 @@ public class DungeonCreator : MonoBehaviour
 
 			roomB.XMin = roomToSlice.XMin;
 			roomB.XMax = roomToSlice.XMax;
-			roomB.ZMin = slicePosition;
+			roomB.ZMin = slicePosition + 1;
 			roomB.ZMax = roomToSlice.ZMax;
 		}
-
+		
 		var newSliceMode = sliceMode == SliceMode.Vertical
 			? SliceMode.Horizontal
 			: SliceMode.Vertical;
-
+		
 		GenerateRooms(roomA, newSliceMode, ++currentSliceDepth, ref rooms);
 		GenerateRooms(roomB, newSliceMode, ++currentSliceDepth, ref rooms);
 	}
-	
-	private void VisualizeDungeon(List<DungeonRoom> rooms)
+
+	private void VisualizeDungeon(Dungeon dungeon)
 	{
 		DeleteDungeon();
 		
 		_dungeonObject = new GameObject("Dungeon");
 
-		for (int i = 0; i < rooms.Count; i++)
+		foreach (var room in dungeon.Rooms)
 		{
-			var room = rooms[i];
-			var roomParent = new GameObject($"room_{i}");
+			var roomParent = new GameObject($"room");
 			roomParent.transform.parent = _dungeonObject.transform;
-			
-			// TODO(FD): Max -1 for early visualization
-			for (int x = room.XMin; x < room.XMax - 1; x++)
-			for (int z = room.ZMin; z < room.ZMax - 1; z++)
+
+			var cornerPositions = new Vector3[]
 			{
-				var tilePosition = new Vector3(x, 0, z);
-				var roomInstance = Instantiate(groundTilePrefab, tilePosition, Quaternion.identity);
-				roomInstance.transform.parent = roomParent.transform;
+				new Vector3(room.XMin, 0, room.ZMin),
+				new Vector3(room.XMin, 0, room.ZMax),
+				new Vector3(room.XMax, 0, room.ZMax),
+				new Vector3(room.XMax, 0, room.ZMin),
+			};
+
+			var rotations = new Vector3[]
+			{
+				new Vector3(0, 0, 0),
+				new Vector3(0, 90, 0),
+				new Vector3(0, 180, 0),
+				new Vector3(0, 270, 0),
+			};
+
+			for (var i = 0; i < 4; i++)
+			{
+				var tileCornerInstance = Instantiate(
+					tileCornerPrefab, 
+					cornerPositions[i],
+					Quaternion.Euler(rotations[i]));
+				
+				tileCornerInstance.transform.parent = roomParent.transform;
+			}
+			
+			for (var x = room.XMin + 1; x <= room.XMax - 1; x++)
+			{
+				var tileWallInstanceA = Instantiate(
+					tileWallPrefab, 
+					new Vector3(x, 0, room.ZMin),
+					Quaternion.Euler(rotations[0]));
+				
+				var tileWallInstanceB = Instantiate(
+					tileWallPrefab, 
+					new Vector3(x, 0, room.ZMax),
+					Quaternion.Euler(rotations[2]));
+				
+				tileWallInstanceA.transform.parent = roomParent.transform;
+				tileWallInstanceB.transform.parent = roomParent.transform;
+			}
+			
+			for (var z = room.ZMin + 1; z <= room.ZMax - 1; z++)
+			{
+				var tileWallInstanceA = Instantiate(
+					tileWallPrefab, 
+					new Vector3(room.XMin, 0, z),
+					Quaternion.Euler(rotations[1]));
+				
+				var tileWallInstanceB = Instantiate(
+					tileWallPrefab, 
+					new Vector3(room.XMax, 0, z),
+					Quaternion.Euler(rotations[3]));
+				
+				tileWallInstanceA.transform.parent = roomParent.transform;
+				tileWallInstanceB.transform.parent = roomParent.transform;
 			}
 
-			UnityEngine.Debug.Log($"room_{i}: {room.XMin} {room.XMax} {room.ZMin} {room.ZMax}");
+			for (var z = room.ZMin + 1; z <= room.ZMax - 1; z++)
+			for (var x = room.XMin + 1; x <= room.XMax - 1; x++)
+			{
+				var tilePosition = new Vector3(x, 0, z);
+				var tileFloorInstance = Instantiate(tileFloorPrefab, tilePosition, Quaternion.identity);
+				tileFloorInstance.transform.parent = roomParent.transform;
+			}
 		}
 	}
 }
