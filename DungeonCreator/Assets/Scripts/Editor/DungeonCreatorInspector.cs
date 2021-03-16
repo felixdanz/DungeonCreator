@@ -23,7 +23,7 @@ public class DungeonCreatorInspector : Editor
 		var buttonGenerate = GUILayout.Button("Generate");
 		if (buttonGenerate)
 		{
-			_dungeonCreator.GenerateDungeon();
+			_dungeonCreator.CreateDungeon();
 		}
 		
 		var buttonDelete = GUILayout.Button("Delete");
