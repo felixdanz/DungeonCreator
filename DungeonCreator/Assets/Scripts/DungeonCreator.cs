@@ -11,8 +11,9 @@ public class DungeonCreator : MonoBehaviour
 	[Header("Configuration")]
 	[SerializeField] private int seed = 123456;
 	[SerializeField] private Vector2Int dungeonSize = new Vector2Int(100, 100);
+	[SerializeField] private Vector2Int minSectorSize = new Vector2Int(10, 10);
 	[SerializeField] private Vector2Int minRoomSize = new Vector2Int(5, 5);
-	[SerializeField] private int maxSliceDepth = 10;
+	[SerializeField] private int maxSplitDepth = 5;
 
 	private System.Random _rng;
 	private Dungeon _dungeon;
@@ -22,7 +23,19 @@ public class DungeonCreator : MonoBehaviour
 	public void CreateDungeon()
 	{
 		_rng = new System.Random(seed);
-		_dungeon = new Dungeon(_rng, Vector2Int.zero, dungeonSize, minRoomSize);
+		
+		_dungeon = new Dungeon(
+			_rng, 
+			Vector2Int.zero, 
+			dungeonSize, 
+			minSectorSize,
+			minRoomSize,
+			maxSplitDepth, 
+			0,
+			SplitMode.Horizontal);
+		
+		_dungeon.CreateRooms();
+		
 		VisualizeDungeon(_dungeon);
 	}
 

@@ -345,7 +345,8 @@ MonoBehaviour:
   tileFloorPrefab: {fileID: 362550351614106626, guid: 5fcd2fe90581921498f4ed4981038257, type: 3}
   tileWallPrefab: {fileID: 5930218779585523212, guid: a3db0efb0ad12ce4288edc73e96e2760, type: 3}
   tileCornerPrefab: {fileID: 3126704695690022831, guid: 44c9c1195b6d3c741a5c2609bf4596ea, type: 3}
-  seed: 121188
+  seed: 129381
   dungeonSize: {x: 100, y: 100}
-  minRoomSize: {x: 5, y: 5}
-  maxSliceDepth: 35
+  minSectorSize: {x: 20, y: 20}
+  minRoomSize: {x: 10, y: 10}
+  maxSplitDepth: 5

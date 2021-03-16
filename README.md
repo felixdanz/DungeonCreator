@@ -1,8 +1,11 @@
 # DungeonCreator
 
-This project is still a work-in-progress.
-The final goal is to have a tool that can create diverse and interesting dungeons.
+** This project is still a work-in-progress. ** <br/>
 
-## Current State
+My goal with this project is to get a better understanding on dungeon creation algorithms.
+I'm currently working on implementing a binary space partitioning algorithm to create diverse and interesting dungeons.
+It's developed as a Unity Project for easier visualization.
 
-I'm currently working on the algorithm to create interesting room layouts.
+## Additional Notes
+ 
+Unity Version used: 2020.2.6f1
