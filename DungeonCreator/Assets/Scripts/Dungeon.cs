@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
@@ -9,14 +10,23 @@ public class Dungeon
 	private Vector2Int _sectorStartPosition;
 	private Vector2Int _sectorEndPosition;
 	
-	private Vector2Int _minSectorSize;
-	private Vector2Int _minRoomSize;
+	private readonly Vector2Int _minSectorSize;
+	private readonly Vector2Int _minRoomSize;
+
+	private readonly int _minWidthConnector;
+	private readonly int _maxWidthConnector;
 	
 	private Vector2Int _roomStartPosition;
 	private Vector2Int _roomEndPosition;
 	
-	private Dungeon _leftLeaf;
-	private Dungeon _rightLeaf;
+	private (Vector2Int, Vector2Int) _connectorStartPositions;
+	private (Vector2Int, Vector2Int) _connectorCenterPositions;
+	private (Vector2Int, Vector2Int) _connectorEndPositions;
+	
+	private Dungeon _leftNode;
+	private Dungeon _rightNode;
+
+	private bool IsLeaf => _leftNode == null || _rightNode == null;
 	
 	
 	public Dungeon(
@@ -25,6 +35,8 @@ public class Dungeon
 		Vector2Int sectorEndPosition, 
 		Vector2Int minSectorSize,
 		Vector2Int minRoomSize,
+		int minWidthConnector,
+		int maxWidthConnector,
 		int maxSplitDepth,
 		int currentSplitDepth,
 		SplitMode splitMode)
@@ -34,11 +46,13 @@ public class Dungeon
 		_sectorEndPosition = sectorEndPosition;
 		_minSectorSize = minSectorSize;
 		_minRoomSize = minRoomSize;
+		_minWidthConnector = minWidthConnector;
+		_maxWidthConnector = maxWidthConnector;
 
-		GenerateLeaves(maxSplitDepth, currentSplitDepth, splitMode);
+		GenerateSectors(maxSplitDepth, currentSplitDepth, splitMode);
 	}
 
-	private void GenerateLeaves(int maxSplitDepth, int currentSplitDepth, SplitMode splitMode)
+	private void GenerateSectors(int maxSplitDepth, int currentSplitDepth, SplitMode splitMode)
 	{
 		if (currentSplitDepth >= maxSplitDepth)
 			return;
@@ -80,22 +94,26 @@ public class Dungeon
 			endPositionRightLeaf = new Vector2Int(_sectorEndPosition.x, _sectorEndPosition.y);
 		}
 		
-		_leftLeaf = new Dungeon(
+		_leftNode = new Dungeon(
 			_rng, 
 			startPositionLeftLeaf, 
 			endPositionLeftLeaf, 
 			_minSectorSize,
 			_minRoomSize,
+			_minWidthConnector,
+			_maxWidthConnector,
 			maxSplitDepth, 
 			currentSplitDepth, 
 			splitMode);
 		
-		_rightLeaf = new Dungeon(
+		_rightNode = new Dungeon(
 			_rng, 
 			startPositionRightLeaf, 
 			endPositionRightLeaf, 
 			_minSectorSize,
 			_minRoomSize,
+			_minWidthConnector,
+			_maxWidthConnector,
 			maxSplitDepth, 
 			currentSplitDepth, 
 			splitMode);
@@ -103,7 +121,7 @@ public class Dungeon
 
 	public void CreateRooms()
 	{
-		if (_leftLeaf == null || _rightLeaf == null)
+		if (_leftNode == null || _rightNode == null)
 		{
 			var endReducedByMin = _sectorEndPosition - _minRoomSize;
 			
@@ -122,21 +140,92 @@ public class Dungeon
 			return;
 		}
 		
-		_leftLeaf.CreateRooms();
-		_rightLeaf.CreateRooms();
+		_leftNode.CreateRooms();
+		_rightNode.CreateRooms();
 	}
 
-	public void GenerateConnectors()
+	public void CreateConnectors()
 	{
+		if (_leftNode.IsLeaf && _rightNode.IsLeaf)
+		{
+			CreateConnectorBetweenLeaves();
+			return;
+		}
 		
+		_leftNode.CreateConnectors();
+		_rightNode.CreateConnectors();
+		
+		CreateConnectorBetweenSectors();
+	}
+
+	private void CreateConnectorBetweenLeaves()
+	{
+		var connectorWidth = _rng.Next(_minWidthConnector, _maxWidthConnector + 1);
+		var connectorVerticalFirst = Convert.ToBoolean(_rng.Next(0, 2));
+
+		_connectorStartPositions.Item1 = new Vector2Int(
+			_rng.Next(_leftNode._roomStartPosition.x + 1, _leftNode._roomEndPosition.x - connectorWidth + 1),
+			_rng.Next(_leftNode._roomStartPosition.y + 1, _leftNode._roomEndPosition.y - connectorWidth + 1));
+		
+		_connectorEndPositions.Item1 = new Vector2Int(
+			_rng.Next(_rightNode._roomStartPosition.x + 1, _rightNode._roomEndPosition.x - connectorWidth + 1),
+			_rng.Next(_rightNode._roomStartPosition.y + 1, _rightNode._roomEndPosition.y - connectorWidth + 1));
+
+		if (connectorVerticalFirst)
+		{
+			_connectorCenterPositions.Item1.x = _connectorStartPositions.Item1.x;
+			_connectorCenterPositions.Item1.y = _connectorEndPositions.Item1.y;
+		}
+		else
+		{
+			_connectorCenterPositions.Item1.y = _connectorStartPositions.Item1.y;
+			_connectorCenterPositions.Item1.x = _connectorEndPositions.Item1.x;
+		}
+	}
+
+	private void CreateConnectorBetweenSectors()
+	{
+		var connectorWidth = _rng.Next(_minWidthConnector, _maxWidthConnector + 1);
+		var connectorVerticalFirst = Convert.ToBoolean(_rng.Next(0, 2));
+
+		_connectorStartPositions.Item1 = _leftNode._connectorCenterPositions.Item1;
+		_connectorEndPositions.Item1 = _rightNode._connectorCenterPositions.Item1;
+
+		if (connectorVerticalFirst)
+		{
+			_connectorCenterPositions.Item1.x = _connectorStartPositions.Item1.x;
+			_connectorCenterPositions.Item1.y = _connectorEndPositions.Item1.y;
+		}
+		else
+		{
+			_connectorCenterPositions.Item1.y = _connectorStartPositions.Item1.y;
+			_connectorCenterPositions.Item1.x = _connectorEndPositions.Item1.x;
+		}
 	}
 
 	public IEnumerable<(Vector2Int, Vector2Int)> GetRooms()
 	{
-		if (_leftLeaf == null || _rightLeaf == null)
+		if (_leftNode == null || _rightNode == null)
 			return new List<(Vector2Int, Vector2Int)>() {(_roomStartPosition, _roomEndPosition)};
 		
-		return _leftLeaf.GetRooms().Concat(_rightLeaf.GetRooms());
+		return _leftNode.GetRooms().Concat(_rightNode.GetRooms());
+	}
+
+	// currently only used for debug visualization
+	public IEnumerable<(Vector2Int, Vector2Int, Vector2Int)> GetConnectors()
+	{
+		if (IsLeaf)
+			return new List<(Vector2Int, Vector2Int, Vector2Int)>();
+
+		var result = new List<(Vector2Int, Vector2Int, Vector2Int)>()
+		{
+			(_connectorStartPositions.Item1, _connectorCenterPositions.Item1, _connectorEndPositions.Item1)
+		};
+
+		if (_leftNode.IsLeaf && _rightNode.IsLeaf)
+			return result;
+
+		return result.Concat(_leftNode.GetConnectors().Concat(_rightNode.GetConnectors()));
 	}
 }
 

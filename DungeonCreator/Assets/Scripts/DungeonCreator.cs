@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using UnityEngine;
 
 public class DungeonCreator : MonoBehaviour
@@ -7,12 +6,14 @@ public class DungeonCreator : MonoBehaviour
 	[SerializeField] private GameObject tileFloorPrefab;
 	[SerializeField] private GameObject tileWallPrefab;
 	[SerializeField] private GameObject tileCornerPrefab;
-	
+
 	[Header("Configuration")]
 	[SerializeField] private int seed = 123456;
 	[SerializeField] private Vector2Int dungeonSize = new Vector2Int(100, 100);
 	[SerializeField] private Vector2Int minSectorSize = new Vector2Int(10, 10);
 	[SerializeField] private Vector2Int minRoomSize = new Vector2Int(5, 5);
+	[SerializeField] private int minWidthConnector = 1;
+	[SerializeField] private int maxWidthConnector = 2;
 	[SerializeField] private int maxSplitDepth = 5;
 
 	private System.Random _rng;
@@ -24,19 +25,24 @@ public class DungeonCreator : MonoBehaviour
 	{
 		_rng = new System.Random(seed);
 		
+		// TODO(FD): check validity of parameters
 		_dungeon = new Dungeon(
 			_rng, 
 			Vector2Int.zero, 
 			dungeonSize, 
 			minSectorSize,
 			minRoomSize,
+			minWidthConnector,
+			maxWidthConnector,
 			maxSplitDepth, 
 			0,
 			SplitMode.Horizontal);
 		
 		_dungeon.CreateRooms();
+		_dungeon.CreateConnectors();
 		
 		VisualizeDungeon(_dungeon);
+		DEBUG_VisualizeConnectors(_dungeon);
 	}
 
 	public void DeleteDungeon()
@@ -129,6 +135,29 @@ public class DungeonCreator : MonoBehaviour
 				var tileFloorInstance = Instantiate(tileFloorPrefab, tilePosition, Quaternion.identity);
 				tileFloorInstance.transform.parent = roomParent.transform;
 			}
+		}
+	}
+	
+	private void DEBUG_VisualizeConnectors(Dungeon dungeon)
+	{
+		var connectors = dungeon.GetConnectors();
+		
+		var connectorParent = new GameObject($"connectors");
+		connectorParent.transform.parent = _visualizedDungeon.transform;
+		
+		foreach (var (connectorStart, connectorCenter, connectorEnd) in connectors)
+		{
+			Debug.DrawLine(
+				new Vector3(connectorStart.x, 1, connectorStart.y),
+				new Vector3(connectorCenter.x, 1, connectorCenter.y),
+				Color.red,
+				100.0f);
+			
+			Debug.DrawLine(
+				new Vector3(connectorCenter.x, 1, connectorCenter.y),
+				new Vector3(connectorEnd.x, 1, connectorEnd.y),
+				Color.red,
+				100.0f);
 		}
 	}
 }
