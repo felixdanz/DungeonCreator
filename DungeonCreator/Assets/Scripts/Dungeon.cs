@@ -166,40 +166,63 @@ public class Dungeon
 		_connectorStartPositions.Item1 = new Vector2Int(
 			_rng.Next(_leftNode._roomStartPosition.x + 1, _leftNode._roomEndPosition.x - connectorWidth + 1),
 			_rng.Next(_leftNode._roomStartPosition.y + 1, _leftNode._roomEndPosition.y - connectorWidth + 1));
-		
+
 		_connectorEndPositions.Item1 = new Vector2Int(
 			_rng.Next(_rightNode._roomStartPosition.x + 1, _rightNode._roomEndPosition.x - connectorWidth + 1),
 			_rng.Next(_rightNode._roomStartPosition.y + 1, _rightNode._roomEndPosition.y - connectorWidth + 1));
 
 		if (connectorVerticalFirst)
 		{
+			_connectorStartPositions.Item2.x = _connectorStartPositions.Item1.x + connectorWidth - 1;
+			_connectorStartPositions.Item2.y = _connectorStartPositions.Item1.y;
+			
+			_connectorEndPositions.Item2.x = _connectorEndPositions.Item1.x;
+			_connectorEndPositions.Item2.y = _connectorEndPositions.Item1.y + connectorWidth - 1;
+			
 			_connectorCenterPositions.Item1.x = _connectorStartPositions.Item1.x;
 			_connectorCenterPositions.Item1.y = _connectorEndPositions.Item1.y;
+
+			_connectorCenterPositions.Item2.x = _connectorStartPositions.Item2.x;
+			_connectorCenterPositions.Item2.y = _connectorEndPositions.Item2.y;
 		}
 		else
 		{
+			_connectorStartPositions.Item2.y = _connectorStartPositions.Item1.y + connectorWidth - 1;
+			_connectorStartPositions.Item2.x = _connectorStartPositions.Item1.x;
+			
+			_connectorEndPositions.Item2.y = _connectorEndPositions.Item1.y;
+			_connectorEndPositions.Item2.x = _connectorEndPositions.Item1.x + connectorWidth - 1;
+			
 			_connectorCenterPositions.Item1.y = _connectorStartPositions.Item1.y;
 			_connectorCenterPositions.Item1.x = _connectorEndPositions.Item1.x;
+			
+			_connectorCenterPositions.Item2.y = _connectorStartPositions.Item2.y;
+			_connectorCenterPositions.Item2.x = _connectorEndPositions.Item2.x ;
 		}
 	}
 
 	private void CreateConnectorBetweenSectors()
 	{
-		var connectorWidth = _rng.Next(_minWidthConnector, _maxWidthConnector + 1);
 		var connectorVerticalFirst = Convert.ToBoolean(_rng.Next(0, 2));
-
-		_connectorStartPositions.Item1 = _leftNode._connectorCenterPositions.Item1;
-		_connectorEndPositions.Item1 = _rightNode._connectorCenterPositions.Item1;
+		
+		_connectorStartPositions = _leftNode._connectorCenterPositions;
+		_connectorEndPositions = _rightNode._connectorCenterPositions;
 
 		if (connectorVerticalFirst)
 		{
 			_connectorCenterPositions.Item1.x = _connectorStartPositions.Item1.x;
 			_connectorCenterPositions.Item1.y = _connectorEndPositions.Item1.y;
+		
+			_connectorCenterPositions.Item2.x = _connectorStartPositions.Item2.x;
+			_connectorCenterPositions.Item2.y = _connectorEndPositions.Item2.y;
 		}
 		else
 		{
 			_connectorCenterPositions.Item1.y = _connectorStartPositions.Item1.y;
 			_connectorCenterPositions.Item1.x = _connectorEndPositions.Item1.x;
+			
+			_connectorCenterPositions.Item2.y = _connectorStartPositions.Item2.y;
+			_connectorCenterPositions.Item2.x = _connectorEndPositions.Item2.x;
 		}
 	}
 
@@ -212,14 +235,14 @@ public class Dungeon
 	}
 
 	// currently only used for debug visualization
-	public IEnumerable<(Vector2Int, Vector2Int, Vector2Int)> GetConnectors()
+	public IEnumerable<((Vector2Int, Vector2Int), (Vector2Int, Vector2Int), (Vector2Int, Vector2Int))> GetConnectors()
 	{
 		if (IsLeaf)
-			return new List<(Vector2Int, Vector2Int, Vector2Int)>();
+			return new List<((Vector2Int, Vector2Int), (Vector2Int, Vector2Int), (Vector2Int, Vector2Int))>();
 
-		var result = new List<(Vector2Int, Vector2Int, Vector2Int)>()
+		var result = new List<((Vector2Int, Vector2Int), (Vector2Int, Vector2Int), (Vector2Int, Vector2Int))>()
 		{
-			(_connectorStartPositions.Item1, _connectorCenterPositions.Item1, _connectorEndPositions.Item1)
+			(_connectorStartPositions, _connectorCenterPositions, _connectorEndPositions)
 		};
 
 		if (_leftNode.IsLeaf && _rightNode.IsLeaf)
