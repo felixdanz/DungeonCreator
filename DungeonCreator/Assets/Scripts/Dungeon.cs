@@ -233,8 +233,7 @@ public class Dungeon
 		
 		return _leftNode.GetRooms().Concat(_rightNode.GetRooms());
 	}
-
-	// currently only used for debug visualization
+	
 	public IEnumerable<((Vector2Int, Vector2Int), (Vector2Int, Vector2Int), (Vector2Int, Vector2Int))> GetConnectors()
 	{
 		if (IsLeaf)

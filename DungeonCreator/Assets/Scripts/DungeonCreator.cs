@@ -49,8 +49,6 @@ public class DungeonCreator : MonoBehaviour
 			dungeonArray,
 			dungeonSize.x,
 			dungeonSize.y);
-		
-		DEBUG_VisualizeConnectors(_dungeon);
 	}
 
 	public void DeleteDungeon()
@@ -78,21 +76,36 @@ public class DungeonCreator : MonoBehaviour
 
 		foreach (var connectorData in connectors)
 		{
-			// TODO(FD): overhaul this, unnecessary information
 			var (connectorStartPos, connectorCenterPos, connectorEndPos) = connectorData;
 			var (connectorStartBegin, connectorStartEnd) = connectorStartPos;
 			var (connectorCenterBegin, connectorCenterEnd) = connectorCenterPos;
 			var (connectorEndBegin, connectorEndEnd) = connectorEndPos;
 
-			for (var z = connectorStartBegin.y; z <= connectorCenterEnd.y; z++)
-			for (var x = connectorStartBegin.x; x <= connectorCenterEnd.x; x++)
+			var (startIndexZ, targetIndexZ) = connectorStartBegin.y <= connectorCenterEnd.y
+				? (connectorStartBegin.y, connectorCenterEnd.y)
+				: (connectorCenterEnd.y, connectorStartBegin.y);
+			
+			var (startIndexX, targetIndexX) = connectorStartBegin.x <= connectorCenterEnd.x
+				? (connectorStartBegin.x, connectorCenterEnd.x)
+				: (connectorCenterEnd.x, connectorStartBegin.x);
+			
+			for (var z = startIndexZ; z <= targetIndexZ; z++)
+			for (var x = startIndexX; x <= targetIndexX; x++)
 			{
 				var gridIndex = z * width + x;
 				gridArray[gridIndex] = 1;
 			}
+			
+			(startIndexZ, targetIndexZ) = connectorCenterBegin.y <= connectorEndEnd.y
+				? (connectorCenterBegin.y, connectorEndEnd.y)
+				: (connectorEndEnd.y, connectorCenterBegin.y);
+			
+			(startIndexX, targetIndexX) = connectorCenterBegin.x <= connectorEndEnd.x
+				? (connectorCenterBegin.x, connectorEndEnd.x)
+				: (connectorEndEnd.x, connectorCenterBegin.x);
 
-			for (var z = connectorCenterBegin.y; z <= connectorEndEnd.y; z++)
-			for (var x = connectorCenterBegin.x; x <= connectorEndEnd.x; x++)
+			for (var z = startIndexZ; z <= targetIndexZ; z++)
+			for (var x = startIndexX; x <= targetIndexX; x++)
 			{
 				var gridIndex = z * width + x;
 				gridArray[gridIndex] = 1;
@@ -122,40 +135,6 @@ public class DungeonCreator : MonoBehaviour
 				Quaternion.identity);
 
 			tileInstance.transform.parent = _visualizedDungeon.transform;
-		}
-	}
-
-	private void DEBUG_VisualizeConnectors(Dungeon dungeon)
-	{
-		foreach (var connectorData in dungeon.GetConnectors())
-		{
-			var (connectorStartBegin, connectorStartEnd) = connectorData.Item1;
-			var (connectorCenterBegin, connectorCenterEnd) = connectorData.Item2;
-			var (connectorEndBegin, connectorEndEnd) = connectorData.Item3;
-			
-			Debug.DrawLine(
-				new Vector3(connectorStartBegin.x, 1, connectorStartBegin.y),
-				new Vector3(connectorCenterBegin.x, 1, connectorCenterBegin.y),
-				Color.red,
-				100.0f);
-			
-			Debug.DrawLine(
-				new Vector3(connectorCenterBegin.x, 1, connectorCenterBegin.y),
-				new Vector3(connectorEndBegin.x, 1, connectorEndBegin.y),
-				Color.red,
-				100.0f);
-			
-			Debug.DrawLine(
-				new Vector3(connectorStartEnd.x, 1, connectorStartEnd.y),
-				new Vector3(connectorCenterEnd.x, 1, connectorCenterEnd.y),
-				Color.red,
-				100.0f);
-			
-			Debug.DrawLine(
-				new Vector3(connectorCenterEnd.x, 1, connectorCenterEnd.y),
-				new Vector3(connectorEndEnd.x, 1, connectorEndEnd.y),
-				Color.red,
-				100.0f);
 		}
 	}
 }
