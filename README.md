@@ -3,7 +3,7 @@
 My goal with this project is to get a better understanding on dungeon creation algorithms. <br/>
 
 ## Current Algorithms
- - Binary Space Partitioning Algorithm
+ - Binary Space Partitioning
  
 ## Planned Algorithms
  - Cellular Automata
