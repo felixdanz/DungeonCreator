@@ -2,14 +2,14 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace BSP
+namespace DungeonCreator
 {
-	public class Dungeon
+	public class BSPDungeon
 	{
 		private readonly Random _rng;
 		
-		private readonly Vector2Int _sectorStartVector2Int;
-		private readonly Vector2Int _sectorEndVector2Int;
+		private readonly Vector2Int _sectorStart;
+		private readonly Vector2Int _sectorEnd;
 		
 		private readonly Vector2Int _minSectorSize;
 		private readonly Vector2Int _minRoomSize;
@@ -20,16 +20,41 @@ namespace BSP
 		private RoomData _roomData;
 		private ConnectorData _connectorData;
 		
-		private Dungeon _leftNode;
-		private Dungeon _rightNode;
+		private BSPDungeon _leftNode;
+		private BSPDungeon _rightNode;
 
 		private bool IsLeaf => _leftNode == null || _rightNode == null;
 		
 		
-		public Dungeon(
+		public BSPDungeon(
+			int seed,
+			(int, int) sectorStart, 
+			(int, int) sectorEnd, 
+			(int, int) minSectorSize,
+			(int, int) minRoomSize,
+			int minWidthConnector,
+			int maxWidthConnector,
+			int maxSplitDepth)
+		{
+			_rng = new Random(seed);
+			_sectorStart = new Vector2Int(sectorStart);
+			_sectorEnd = new Vector2Int(sectorEnd);
+			_minSectorSize = new Vector2Int(minSectorSize);
+			_minRoomSize = new Vector2Int(minRoomSize);
+			_minWidthConnector = minWidthConnector;
+			_maxWidthConnector = maxWidthConnector;
+			
+			var splitMode = _rng.Next(0, 2) == 0 
+				? SplitMode.Vertical
+				: SplitMode.Horizontal;
+			
+			GenerateSectors(maxSplitDepth, 0, splitMode);
+		}
+		
+		private BSPDungeon(
 			Random rng, 
-			Vector2Int sectorStartVector2Int, 
-			Vector2Int sectorEndVector2Int, 
+			Vector2Int sectorStart, 
+			Vector2Int sectorEnd, 
 			Vector2Int minSectorSize,
 			Vector2Int minRoomSize,
 			int minWidthConnector,
@@ -39,8 +64,8 @@ namespace BSP
 			SplitMode splitMode)
 		{
 			_rng = rng;
-			_sectorStartVector2Int = sectorStartVector2Int;
-			_sectorEndVector2Int = sectorEndVector2Int;
+			_sectorStart = sectorStart;
+			_sectorEnd = sectorEnd;
 			_minSectorSize = minSectorSize;
 			_minRoomSize = minRoomSize;
 			_minWidthConnector = minWidthConnector;
@@ -60,8 +85,8 @@ namespace BSP
 				: SplitMode.Horizontal;
 
 			var (splitStart, splitEnd) = splitMode == SplitMode.Horizontal
-				? (_sectorStartVector2Int.Y + _minSectorSize.Y + 1, _sectorEndVector2Int.Y - _minSectorSize.Y - 1)
-				: (_sectorStartVector2Int.X + _minSectorSize.X + 1, _sectorEndVector2Int.X - _minSectorSize.X - 1);
+				? (_sectorStart.Y + _minSectorSize.Y + 1, _sectorEnd.Y - _minSectorSize.Y - 1)
+				: (_sectorStart.X + _minSectorSize.X + 1, _sectorEnd.X - _minSectorSize.X - 1);
 
 			if (splitEnd - splitStart <= 1)
 				return;
@@ -76,22 +101,22 @@ namespace BSP
 			
 			if (splitMode == SplitMode.Horizontal)
 			{
-				startVector2IntLeftLeaf = new Vector2Int(_sectorStartVector2Int.X, _sectorStartVector2Int.Y);
-				startVector2IntRightLeaf = new Vector2Int(_sectorStartVector2Int.X, splitPosition + 1);
+				startVector2IntLeftLeaf = new Vector2Int(_sectorStart.X, _sectorStart.Y);
+				startVector2IntRightLeaf = new Vector2Int(_sectorStart.X, splitPosition + 1);
 				
-				endVector2IntLeftLeaf = new Vector2Int(_sectorEndVector2Int.X, splitPosition - 1);
-				endVector2IntRightLeaf = new Vector2Int(_sectorEndVector2Int.X, _sectorEndVector2Int.Y);
+				endVector2IntLeftLeaf = new Vector2Int(_sectorEnd.X, splitPosition - 1);
+				endVector2IntRightLeaf = new Vector2Int(_sectorEnd.X, _sectorEnd.Y);
 			}
 			else
 			{
-				startVector2IntLeftLeaf = new Vector2Int(_sectorStartVector2Int.X, _sectorStartVector2Int.Y);
-				startVector2IntRightLeaf = new Vector2Int(splitPosition + 1, _sectorStartVector2Int.Y);
+				startVector2IntLeftLeaf = new Vector2Int(_sectorStart.X, _sectorStart.Y);
+				startVector2IntRightLeaf = new Vector2Int(splitPosition + 1, _sectorStart.Y);
 				
-				endVector2IntLeftLeaf = new Vector2Int(splitPosition - 1, _sectorEndVector2Int.Y);
-				endVector2IntRightLeaf = new Vector2Int(_sectorEndVector2Int.X, _sectorEndVector2Int.Y);
+				endVector2IntLeftLeaf = new Vector2Int(splitPosition - 1, _sectorEnd.Y);
+				endVector2IntRightLeaf = new Vector2Int(_sectorEnd.X, _sectorEnd.Y);
 			}
 			
-			_leftNode = new Dungeon(
+			_leftNode = new BSPDungeon(
 				_rng, 
 				startVector2IntLeftLeaf, 
 				endVector2IntLeftLeaf, 
@@ -103,7 +128,7 @@ namespace BSP
 				currentSplitDepth, 
 				splitMode);
 			
-			_rightNode = new Dungeon(
+			_rightNode = new BSPDungeon(
 				_rng, 
 				startVector2IntRightLeaf, 
 				endVector2IntRightLeaf, 
@@ -120,16 +145,16 @@ namespace BSP
 		{
 			if (_leftNode == null || _rightNode == null)
 			{
-				var endReducedByMin = _sectorEndVector2Int - _minRoomSize;
+				var endReducedByMin = _sectorEnd - _minRoomSize;
 				
-				var newStartX = _rng.Next(_sectorStartVector2Int.X, endReducedByMin.X);
-				var newStartY = _rng.Next(_sectorStartVector2Int.Y, endReducedByMin.Y);
+				var newStartX = _rng.Next(_sectorStart.X, endReducedByMin.X);
+				var newStartY = _rng.Next(_sectorStart.Y, endReducedByMin.Y);
 				
-				var newXLength = _sectorEndVector2Int.X - newStartX;
-				var newYLength = _sectorEndVector2Int.Y - newStartY;
+				var newXLength = _sectorEnd.X - newStartX;
+				var newYLength = _sectorEnd.Y - newStartY;
 				
-				_roomData.StartVector2Int.X = _rng.Next(_sectorStartVector2Int.X, _sectorEndVector2Int.X - newXLength);
-				_roomData.StartVector2Int.Y = _rng.Next(_sectorStartVector2Int.Y, _sectorEndVector2Int.Y - newYLength);
+				_roomData.StartVector2Int.X = _rng.Next(_sectorStart.X, _sectorEnd.X - newXLength);
+				_roomData.StartVector2Int.Y = _rng.Next(_sectorStart.Y, _sectorEnd.Y - newYLength);
 				
 				_roomData.EndVector2Int.X = _roomData.StartVector2Int.X + newXLength;
 				_roomData.EndVector2Int.Y = _roomData.StartVector2Int.Y + newYLength;
@@ -239,7 +264,7 @@ namespace BSP
 			}
 		}
 
-		public IEnumerable<RoomData> GetRooms()
+		internal IEnumerable<RoomData> GetRooms()
 		{
 			if (_leftNode == null || _rightNode == null)
 				return new List<RoomData>() { _roomData };
@@ -247,7 +272,7 @@ namespace BSP
 			return _leftNode.GetRooms().Concat(_rightNode.GetRooms());
 		}
 		
-		public IEnumerable<ConnectorData> GetConnectors()
+		internal IEnumerable<ConnectorData> GetConnectors()
 		{
 			if (IsLeaf)
 				return new List<ConnectorData>();
@@ -262,8 +287,8 @@ namespace BSP
 
 		public int[] ToIntArray()
 		{
-			var width = _sectorEndVector2Int.X;
-			var height = _sectorEndVector2Int.Y;
+			var width = _sectorEnd.X;
+			var height = _sectorEnd.Y;
 			var array = new int[width * height];
 
 			var rooms = GetRooms();
@@ -328,13 +353,13 @@ namespace BSP
 		}
 	}
 	
-	public struct RoomData
+	internal struct RoomData
 	{
 		public Vector2Int StartVector2Int;
 		public Vector2Int EndVector2Int;
 	}
-
-	public struct ConnectorData
+	
+	internal struct ConnectorData
 	{
 		public Vector2Int StartVector2IntFrom;
 		public Vector2Int StartVector2IntTo;
@@ -345,11 +370,17 @@ namespace BSP
 		public Vector2Int EndVector2IntFrom;
 		public Vector2Int EndVector2IntTo;
 	}
-
-	public struct Vector2Int
+	
+	internal struct Vector2Int
 	{
 		public int X;
 		public int Y;
+		
+		public Vector2Int((int x, int y) _)
+		{
+			X = _.x;
+			Y = _.y;
+		}
 		
 		public Vector2Int(int x, int y)
 		{
@@ -363,7 +394,7 @@ namespace BSP
 		}
 	}
 
-	public enum SplitMode
+	internal enum SplitMode
 	{
 		Horizontal,
 		Vertical,

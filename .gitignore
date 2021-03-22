@@ -2,13 +2,19 @@
 #
 # Get latest from https://github.com/github/gitignore/blob/master/Unity.gitignore
 #
-/DungeonCreator/[Ll]ibrary/
-/DungeonCreator/[Tt]emp/
-/DungeonCreator/[Oo]bj/
-/DungeonCreator/[Bb]uild/
-/DungeonCreator/[Bb]uilds/
-/DungeonCreator/[Ll]ogs/
-/DungeonCreator/[Mm]emoryCaptures/
+
+/DungeonCreator_DLL/.idea/
+/DungeonCreator_DLL/DungeonCreator/[Bb]in/
+/DungeonCreator_DLL/DungeonCreator/[Oo]bj/
+
+/DungeonCreator_UnityExample/.idea/
+/DungeonCreator_UnityExample/[Ll]ibrary/
+/DungeonCreator_UnityExample/[Tt]emp/
+/DungeonCreator_UnityExample/[Oo]bj/
+/DungeonCreator_UnityExample/[Bb]uild/
+/DungeonCreator_UnityExample/[Bb]uilds/
+/DungeonCreator_UnityExample/[Ll]ogs/
+/DungeonCreator_UnityExample/[Mm]emoryCaptures/
 
 # Asset meta data should only be ignored when the corresponding asset is also ignored
 !/[Aa]ssets/**/*.meta

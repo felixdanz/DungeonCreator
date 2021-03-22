@@ -1,17 +1,17 @@
 using UnityEditor;
 using UnityEngine;
 
-[CustomEditor(typeof(DungeonCreator))]
-public class DungeonCreatorInspector : Editor
+[CustomEditor(typeof(BSPDungeonCreator))]
+public class BSPDungeonCreatorInspector : Editor
 {
-	private DungeonCreator _dungeonCreator;
+	private BSPDungeonCreator _dungeonCreator;
 
 	private GameObject _prefabFloorTile;
 	
 
 	private void OnEnable()
 	{
-		_dungeonCreator = (DungeonCreator) target;
+		_dungeonCreator = (BSPDungeonCreator) target;
 	}
 	
 	public override void OnInspectorGUI()
