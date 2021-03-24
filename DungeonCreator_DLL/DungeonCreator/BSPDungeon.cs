@@ -264,7 +264,7 @@ namespace DungeonCreator
 			}
 		}
 
-		internal IEnumerable<RoomData> GetRooms()
+		private IEnumerable<RoomData> GetRooms()
 		{
 			if (_leftNode == null || _rightNode == null)
 				return new List<RoomData>() { _roomData };
@@ -272,7 +272,7 @@ namespace DungeonCreator
 			return _leftNode.GetRooms().Concat(_rightNode.GetRooms());
 		}
 		
-		internal IEnumerable<ConnectorData> GetConnectors()
+		private IEnumerable<ConnectorData> GetConnectors()
 		{
 			if (IsLeaf)
 				return new List<ConnectorData>();

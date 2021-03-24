@@ -1,3 +1,4 @@
+using System;
 using DungeonCreator;
 using UnityEngine;
 
@@ -18,7 +19,9 @@ public class BSPDungeonCreator : MonoBehaviour
 	[SerializeField] private int minWidthConnector = 1;
 	[SerializeField] private int maxWidthConnector = 2;
 	[SerializeField] private int maxSplitDepth = 5;
-	
+
+	public bool updateOnChange;
+
 	private BSPDungeon _dungeon;
 	private GameObject _visualizedDungeon;
 	
@@ -83,5 +86,60 @@ public class BSPDungeonCreator : MonoBehaviour
 				tileInstance.transform.parent = _visualizedDungeon.transform;
 			}
 		}
+	}
+
+	private void OnValidate()
+	{
+		#region dungenSize
+
+		if (dungeonSize.x < 1) 
+			dungeonSize.x = 1;
+		
+		if (dungeonSize.y < 1) 
+			dungeonSize.y = 1;
+
+		#endregion
+
+		#region minSectorSize
+
+		if (minSectorSize.x < 1) 
+			minSectorSize.y = 1;
+
+		if (minSectorSize.y < 1) 
+			minSectorSize.y = 1;
+		
+		if (minSectorSize.x > dungeonSize.x) 
+			minSectorSize.x = dungeonSize.x;
+		
+		if (minSectorSize.y > dungeonSize.y) 
+			minSectorSize.y = dungeonSize.y;
+		
+		#endregion
+
+		#region minRoomSize
+
+		if (minRoomSize.x < 1)
+			minRoomSize.x = 1;
+		
+		if (minRoomSize.y < 1)
+			minRoomSize.y = 1;
+		
+		if (minRoomSize.x > minSectorSize.x) 
+			minRoomSize.x = minSectorSize.x;
+		
+		if (minRoomSize.y > minSectorSize.y) 
+			minRoomSize.y = minSectorSize.y;
+
+		#endregion
+
+		#region min/maxWidthConnector
+
+		if (minWidthConnector < 1)
+			minWidthConnector = 1;
+		
+		if (maxWidthConnector < minWidthConnector)
+			maxWidthConnector = minWidthConnector;
+
+		#endregion
 	}
 }

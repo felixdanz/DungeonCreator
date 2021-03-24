@@ -16,7 +16,10 @@ public class BSPDungeonCreatorInspector : Editor
 	
 	public override void OnInspectorGUI()
 	{
-		DrawDefaultInspector();
+		if (DrawDefaultInspector() && _dungeonCreator.updateOnChange)
+		{
+			_dungeonCreator.CreateDungeon();
+		}
 		
 		EditorGUILayout.Separator();
 
