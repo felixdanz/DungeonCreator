@@ -1,31 +1,25 @@
 # DungeonCreator
 
-My goal with this project is to get a better understanding on dungeon creation algorithms. <br/>
-I will mostly be trying out different approaches on how to generate dungeons with different algorithms and how to layer and combine algorithms for better effects.
+`work in progress`
+
+My goal with this project is to get a better understanding of procedural dungeon 
+generation algorithms and to provide a collection of algorithms inside a dll for future projects.
 
 ## Current Algorithms
- -	Binary Space Partitioning (used for room-based dungeons for now)
- -	Height Map combined with Cellular Automata (experimenting with caves)
+ -	Binary Space Partitioning (room based dungeons)
+ -	Height Map + Cellular Automata (cave-like dungeons)
 
 ## Demonstrations
+Created with a basic Unity Project.
 
 Binary Space Partitioning (Rooms) <br/>
-![Binary Space Partitioning](demo_bsp.gif)
-
+![BinarySpacePartitioning](Documentation/bsp.gif)
 <br/>
+Height Map (Perlin Noise) + Cellular Automata <br/>
+![HeightMap-CellularAutomata](Documentation/caves.png)
 
-Height Map (Perlin Noise) + Cellular Automata (Caves) <br/>
-![](caves.png)
+## Resources used
 
-## Planned
- - 	implement functionality to connect isolated caves
- -	use BSP for generating caves
-
-## Additional Notes
-
-Unity Version used: 2020.3.0f1
-
-Resources used:
  -	Basic BSP Dungeon Generation <br/>
 	http://www.roguebasin.com/index.php?title=Basic_BSP_Dungeon_generation
  -	Improved Noise reference implementation (by Ken Perlin) <br/>
