@@ -1,5 +1,7 @@
 # DungeonCreator
 
+![Build](https://github.com/felixdanz/DungeonCreator/actions/workflows/dotnet.yml/badge.svg)
+
 `work in progress`
 
 My goal with this project is to get a better understanding of procedural dungeon 
@@ -25,6 +27,7 @@ Height Map (Perlin Noise) + Cellular Automata <br/>
  -	Improved Noise reference implementation (by Ken Perlin) <br/>
 	https://mrl.cs.nyu.edu/~perlin/noise/
  - 	"Procedural Landmass Generation" by Sebastian Lague <br/>
+	https://www.youtube.com/playlist?list=PLFt_AvWsXl0eBW2EiBtl_sxmDtSgZBxB3 <br/>
 	used to better understanding how to work with Perlin Noise
 
 
