@@ -1,6 +1,6 @@
 # DungeonCreator
 
-![Build](https://github.com/felixdanz/DungeonCreator/actions/workflows/dotnet.yml/badge.svg)
+![Build](https://github.com/felixdanz/DungeonCreator/actions/workflows/build.yml/badge.svg)
 
 `work in progress`
 
